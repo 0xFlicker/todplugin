@@ -1,0 +1,8 @@
+myNextApplication:
+  component: "@sls-next/serverless-component@v3.7.0-alpha.11"
+  inputs:
+    cloudfront:
+      api:
+        minTTL: 10
+        maxTTL: 10
+        defaultTTL: 10

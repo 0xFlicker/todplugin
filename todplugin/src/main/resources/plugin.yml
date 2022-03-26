@@ -1,0 +1,7 @@
+name: the-odd-dystrict
+version: 1.0.0
+description: The official plugin of The Odd Dystrict
+author: 0xFlick
+main: com.oddie.Oddie
+depend:
+  - LuckPerms

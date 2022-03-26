@@ -1,0 +1,8 @@
+rpc: http://borg.local:8545
+secret: foo
+contractAddress: 0xbadbeef
+port: 8080
+tls: false
+tlsKeyStorePassword: oddies
+tlsKeyStorePath: ""
+wallets: []
