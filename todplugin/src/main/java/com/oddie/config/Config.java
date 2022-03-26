@@ -5,18 +5,21 @@ import java.util.List;
 import java.util.UUID;
 
 import com.oddie.Oddie;
-import com.oddie.web3.OddieJoinRequest;
+import com.oddie.http.OddieJoinRequest;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class Config {
   private String rpc;
+  private String polygonRpc;
   private String secret;
   private String contractAddress;
+  private String nftWorldsPlayerContractAddress;
   private String tokenGroup;
   private String tlsKeyStore;
   private String tlsKeyStorePassword;
+  private String connectWebpage;
   private boolean tls;
   private int port;
   private List<Wallet> wallets;
@@ -30,7 +33,13 @@ public class Config {
 
     this.rpc = config.getString("rpc");
     if (this.rpc.isEmpty()) {
-      Bukkit.getLogger().warning("rpc is not set in config.yml. Please set an HTTPS endpoing for the rpc.");
+      Bukkit.getLogger().warning("rpc is not set in config.yml. Please set an HTTPS endpoint for the rpc.");
+      System.exit(1);
+    }
+
+    this.polygonRpc = config.getString("polygonRpc");
+    if (this.rpc.isEmpty()) {
+      Bukkit.getLogger().warning("polygonRpc is not set in config.yml. Please set an HTTPS endpoint for the rpc.");
       System.exit(1);
     }
 
@@ -53,6 +62,19 @@ public class Config {
       System.exit(1);
     }
 
+    this.nftWorldsPlayerContractAddress = config.getString("nftWorldsPlayerContractAddress");
+    if (this.contractAddress.isEmpty()) {
+      Bukkit.getLogger()
+          .warning("nftWorldsPlayerContractAddress is not set in config.yml. Please set a contract address.");
+      System.exit(1);
+    }
+
+    this.connectWebpage = config.getString("connectWebpage");
+    if (this.connectWebpage.isEmpty()) {
+      Bukkit.getLogger().warning("connectWebpage is not set in config.yml. Please set a connect webpage.");
+      System.exit(1);
+    }
+
     this.tls = config.getBoolean("tls");
     this.tlsKeyStore = config.getString("tlsKeyStorePath");
     this.tlsKeyStorePassword = config.getString("tlsKeyStorePassword");
@@ -67,6 +89,10 @@ public class Config {
     return rpc;
   }
 
+  public String getPolygonRpc() {
+    return polygonRpc;
+  }
+
   public String getTokenGroup() {
     return tokenGroup;
   }
@@ -77,6 +103,14 @@ public class Config {
 
   public String getContractAddress() {
     return contractAddress;
+  }
+
+  public String getNftWorldsPlayerContractAddress() {
+    return nftWorldsPlayerContractAddress;
+  }
+
+  public String getConnectWebpage() {
+    return connectWebpage;
   }
 
   public int getPort() {
@@ -100,7 +134,7 @@ public class Config {
   }
 
   public void createOrUpdateWallet(OddieJoinRequest oddieJoinRequest) {
-    UUID uuid = UUID.fromString(oddieJoinRequest.getMinecraftPlayerId());
+    UUID uuid = oddieJoinRequest.getPlayerUuid();
     for (Wallet wallet : this.wallets) {
       if (wallet.getAddress().equals(oddieJoinRequest.getAddress()) && wallet.getMinecraftPlayerId().equals(uuid)) {
         // nothing to do

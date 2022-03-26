@@ -5,3 +5,8 @@ author: 0xFlick
 main: com.oddie.Oddie
 depend:
   - LuckPerms
+commands:
+  wallet:
+    description: Connect your wallet to the Oddie metaverse
+    usage: /<command>
+    permission: oddie.command.wallet

@@ -1,8 +1,10 @@
-rpc: http://borg.local:8545
+rpc: https://mainnet.infura.io
 secret: foo
-contractAddress: 0xbadbeef
+contractAddress: "0x0"
 port: 8080
+tokenGroup: none
+connectWebpage: none
 tls: false
-tlsKeyStorePassword: oddies
-tlsKeyStorePath: ""
+tlsKeyStorePassword: password
+tlsKeyStorePath: /etc/key
 wallets: []

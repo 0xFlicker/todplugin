@@ -1,4 +1,19 @@
 {
-  "cSpell.words": ["Bukkit", "Oddie"],
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "cSpell.words": [
+    "Bukkit",
+    "Minecraft",
+    "msal",
+    "Oddie",
+    "reduxjs",
+    "XSTS",
+    "xuid"
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "eslint.nodePath": "todweb3/.yarn/sdks",
+  "typescript.tsdk": "todweb3/.yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }
