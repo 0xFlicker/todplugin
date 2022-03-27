@@ -32,6 +32,7 @@ export interface TableScores {
 
 export interface TableNodes {
   Node_ID: string;
+  Board_Name: string;
   Child_Counts: number[];
 }
 

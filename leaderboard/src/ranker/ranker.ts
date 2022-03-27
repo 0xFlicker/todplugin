@@ -371,7 +371,7 @@ async function createRanker({
    * @param nodeId
    */
   function keyFromNodeId(nodeId: number): string {
-    return `${rootKey}|node_${nodeId}`;
+    return `node_${nodeId}`;
   }
 
   /**
@@ -391,6 +391,7 @@ async function createRanker({
     const nodeIdsSet = new Set(nodeIds);
     const keys = [...nodeIdsSet].map(keyFromNodeId).map((key) => ({
       Node_ID: key,
+      Board_Name: rootKey,
     }));
     const nodeRequest = await db
       .batchGet({
@@ -403,7 +404,7 @@ async function createRanker({
       .promise();
     const nodes = nodeRequest.Responses?.nodes
       ? nodeRequest.Responses?.nodes?.reduce((memo, result, i) => {
-          memo[keys[i].Node_ID] = result;
+          memo[result.Node_ID] = result;
           return memo;
         }, {})
       : {};
@@ -449,7 +450,7 @@ async function createRanker({
       .batchGet({
         RequestItems: {
           nodes: {
-            Keys: keys.map((key) => ({ Node_ID: key })),
+            Keys: keys.map((key) => ({ Node_ID: key, Board_Name: rootKey })),
           },
         },
       })
@@ -467,6 +468,7 @@ async function createRanker({
         if (!node) {
           node = {
             Node_ID: key.toString(),
+            Board_Name: rootKey,
             Child_Counts: Array(branchingFactor).fill(0),
           };
         }
@@ -841,6 +843,7 @@ async function createRanker({
         TableName: "nodes",
         Key: {
           Node_ID: keyFromNodeId(nodeId),
+          Board_Name: rootKey,
         },
       })
       .promise();
@@ -984,6 +987,7 @@ async function createRanker({
         TableName: "nodes",
         Key: {
           Node_ID: keyFromNodeId(0),
+          Board_Name: rootKey,
         },
       })
       .promise();

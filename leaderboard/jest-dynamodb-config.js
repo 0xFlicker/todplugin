@@ -31,10 +31,12 @@ module.exports = {
     {
       TableName: `nodes`,
       KeySchema: [
-        { AttributeName: 'Node_ID', KeyType: 'HASH' },
+        { AttributeName: 'Board_Name', KeyType: 'HASH' },
+        { AttributeName: 'Node_ID', KeyType: 'RANGE' },
       ],
       AttributeDefinitions: [
         { AttributeName: 'Node_ID', AttributeType: 'S' },
+        { AttributeName: 'Board_Name', AttributeType: 'S' },
         // { AttributeName: 'Child_Counts', AttributeType: 'NS' },
       ],
       BillingMode: 'PAY_PER_REQUEST',
