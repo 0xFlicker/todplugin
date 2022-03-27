@@ -48,16 +48,7 @@ export interface Ranker {
     output: TableScores[]
   ): Promise<TableScores[]>;
   leaderboard(): Promise<TableScores[]>;
-  keyForScore(player: string): string;
   rootPath(): string;
-}
-
-export interface ScoreData {
-  id: string;
-  name: string;
-  date: Date | string;
-  eventId?: string;
-  value: number[];
 }
 
 interface KeyToDataMap<T> {
@@ -384,15 +375,6 @@ async function createRanker({
   }
 
   /**
-   * Returns a (named) key for a ranker_score entity.
-   *
-   * @param name
-   */
-  function keyForScore(name: string): string {
-    return `${rootKey}|${name}`;
-  }
-
-  /**
    *  Retrives nodes from DB
    *
    * @param nodeIds A list of node ids we want to get.
@@ -474,13 +456,13 @@ async function createRanker({
       .promise();
     const nodes: Array<[string, TableNodes]> = (
       nodeResponse.Responses?.nodes || []
-    ).map((result, i) => [<string>keys[i], <TableNodes>result]);
+    ).map((result) => [<string>result.Node_ID, <TableNodes>result]);
     const nodeDict: KeyToDataMap<TableNodes> = {};
     for (let [key, node] of nodes) {
       nodeDict[key] = node;
     }
     for (let [[key, child], amount] of nodeChildrenEntries) {
-      if (amount !== 0 && key) {
+      if (amount !== 0) {
         let node = nodeDict[key];
         if (!node) {
           node = {
@@ -507,7 +489,13 @@ async function createRanker({
     //   void
     // >(
     const nodesToUpdate = Object.values(nodeDict);
-    const scoresToUpdate = Object.values(scores);
+    let scoresToUpdate = Object.values(scores);
+
+    // Remove any scoresToUpdate that are also marked for deletion
+    scoresToUpdate = scoresToUpdate.filter(
+      (score) => !scoresToDelete.includes(score.Player_ID)
+    );
+
     if (
       nodesToUpdate.length ||
       scoresToUpdate.length ||
@@ -517,7 +505,7 @@ async function createRanker({
         RequestItems: {
           ...(nodesToUpdate.length
             ? {
-                nodes: Object.entries(nodeDict).map(([_, data]) => {
+                nodes: nodesToUpdate.map((data) => {
                   return {
                     PutRequest: {
                       Item: data,
@@ -529,7 +517,7 @@ async function createRanker({
           ...(scoresToUpdate.length || scoresToDelete.length
             ? {
                 scores: [
-                  ...Object.entries(scores).map(([_, data]) => {
+                  ...scoresToUpdate.map((data) => {
                     return {
                       PutRequest: {
                         Item: data,
@@ -539,7 +527,8 @@ async function createRanker({
                   ...scoresToDelete.map((key) => ({
                     DeleteRequest: {
                       Key: {
-                        Node_ID: key,
+                        Player_ID: key,
+                        Board_Name: rootKey,
                       },
                     },
                   })),
@@ -548,7 +537,13 @@ async function createRanker({
             : {}),
         },
       };
-      await db.batchWrite(writeRequest).promise();
+      try {
+        await db.batchWrite(writeRequest).promise();
+      } catch (e) {
+        log(() => `Error updating nodes: ${e}`);
+        console.error(JSON.stringify(writeRequest), e);
+        throw e;
+      }
     }
     //   async (work: DocumentClient.TransactWriteItem[]) => {
     //     const batch = db.transactWrite({
@@ -625,20 +620,25 @@ async function createRanker({
           scores
         )} scoresToRemove: ${JSON.stringify(scoresToRemove)}`
     );
-    const scoreKeys = scores.map(({ Player_ID: id }) => id).map(keyForScore);
-    const scoreDocs = await db
-      .batchGet({
-        RequestItems: {
-          scores: {
-            Keys: scoreKeys.map((key) => ({ Player_ID: key })),
-          },
-        },
-      })
-      .promise();
+    const scoreKeys = scores.map(({ Player_ID: id }) => id);
+    const scoreDocs = scoreKeys.length
+      ? await db
+          .batchGet({
+            RequestItems: {
+              scores: {
+                Keys: scoreKeys.map((key) => ({
+                  Player_ID: key,
+                  Board_Name: rootKey,
+                })),
+              },
+            },
+          })
+          .promise()
+      : { Responses: { scores: [] } };
 
-    const saveNodes: Array<[string, TableScores]> = scoreDocs?.Responses?.data
-      ? scoreDocs?.Responses?.data.map((result, i) => [
-          scoreKeys[i],
+    const saveNodes: Array<[string, TableScores]> = scoreDocs?.Responses?.scores
+      ? scoreDocs?.Responses?.scores.map((result) => [
+          result.Player_ID,
           <TableScores>result,
         ])
       : [];
@@ -653,12 +653,12 @@ async function createRanker({
     const scoreEntsDel: Array<string> = [];
     for (let { Player_ID: id, Score: value } of scoresToRemove) {
       scoreDeltas.set(value, (scoreDeltas.get(value) || 0) - 1);
-      scoreEntsDel.push(keyForScore(id));
+      scoreEntsDel.push(id);
     }
     for (let { Player_ID: id, Date: date, Score: value } of scores) {
       let newScore: TableScores;
       log(() => `computing ${id}: [${value.join(", ")}]`);
-      const scoreKey = keyForScore(id);
+      const scoreKey = id;
       if (scoreKey in oldScores) {
         newScore = oldScores[scoreKey];
         log(() => `creating -1 delta for ${JSON.stringify(newScore.Score)}`);
@@ -668,7 +668,12 @@ async function createRanker({
         );
       } else {
         log("new score");
-        newScore = { Player_ID: id, Score: [], Date: date };
+        newScore = {
+          Board_Name: rootKey,
+          Player_ID: id,
+          Score: [],
+          Date: date,
+        };
       }
       if (value) {
         log(() => `creating +1 delta for ${JSON.stringify(value)}`);
@@ -835,7 +840,7 @@ async function createRanker({
       .get({
         TableName: "nodes",
         Key: {
-          Node_ID: { N: keyFromNodeId(nodeId) },
+          Node_ID: keyFromNodeId(nodeId),
         },
       })
       .promise();
@@ -845,8 +850,8 @@ async function createRanker({
     for (let i = branchingFactor - 1; i >= 0; i--) {
       // log(() => `${' '.repeat(depth)}loop: ${i} rank: ${rank} childCounts[i]: ${childCounts[i]}`)
       if (node.Item) {
-        const nodeData = <Node>node.Item;
-        const { childCounts } = nodeData;
+        const nodeData = <TableNodes>node.Item;
+        const { Child_Counts: childCounts } = nodeData;
         const childElement =
           childCounts[(i < 0 ? childCounts.length - 1 : 0) + i];
         if (rank - childElement < 0) {
@@ -944,7 +949,7 @@ async function createRanker({
 
     const oldScores = scores.filter((scoreData: TableScores) => {
       if (period === -1) {
-        return true;
+        return false;
       }
       const scoreDataDate = new Date(scoreData.Date);
       return scoreDataDate.getTime() / 1000 + period < now;
@@ -999,13 +1004,13 @@ async function createRanker({
   async function setScores(
     scores: TableScores[]
   ): Promise<[TableScores[], TableScores[]]> {
-    // Add ranker namespace to score if needed
-    scores = scores.map((score) => ({
-      ...score,
-      Player_ID: score.Player_ID.includes("|")
-        ? score.Player_ID
-        : `${rootKey}|${score.Player_ID}`,
-    }));
+    // // Add ranker namespace to score if needed
+    // scores = scores.map((score) => ({
+    //   ...score,
+    //   Player_ID: score.Player_ID.includes("|")
+    //     ? score.Player_ID
+    //     : `${rootKey}|${score.Player_ID}`,
+    // }));
     log(
       () => `New scores ${JSON.stringify(scores.map((s) => `${s.Player_ID}`))}`
     );
@@ -1034,7 +1039,8 @@ async function createRanker({
         RequestItems: {
           scores: {
             Keys: scores.map((name) => ({
-              Player_ID: { S: keyForScore(name) },
+              Player_ID: name,
+              Board_Name: rootKey,
             })),
           },
         },
@@ -1073,11 +1079,16 @@ async function createRanker({
     );
     const nodeDict = await getMultipleNodes(nodeIds);
     // Ranks are returned 0 index, so add 1 for humans
-    return Promise.resolve(
-      nodeIdsWithChildren
-        .map((n) => findRankForNodes(n, nodeDict))
-        .map((n) => (isNaN(n) && n) || n + 1)
+    const humanRanks = nodeIdsWithChildren
+      .map((n) => findRankForNodes(n, nodeDict))
+      .map((n) => (isNaN(n) && n) || n + 1);
+    log(
+      () =>
+        `-> findRanks(scores: ${JSON.stringify(scores)}) -> ${JSON.stringify(
+          humanRanks
+        )}`
     );
+    return humanRanks;
   }
 
   /**
@@ -1222,14 +1233,13 @@ async function createRanker({
     findRanks,
     leaderboardUpdate,
     leaderboard,
-    keyForScore,
     rootPath: () => rootKey,
   };
 
   return Promise.resolve(
     Object.entries(selfie).reduce((memo, [key, value]) => {
       // Filter out non-async methods
-      if (!["keyForScore", "rootPath"].includes(key)) {
+      if (!["rootPath"].includes(key)) {
         memo[key] = lazyInit(value);
       }
       return memo;

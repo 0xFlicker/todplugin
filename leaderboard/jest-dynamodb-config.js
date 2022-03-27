@@ -17,9 +17,11 @@ module.exports = {
     {
       TableName: `scores`,
       KeySchema: [
-        { AttributeName: 'Player_ID', KeyType: 'HASH' },
+        { AttributeName: 'Board_Name', KeyType: 'HASH' },
+        { AttributeName: 'Player_ID', KeyType: 'RANGE' },
       ],
       AttributeDefinitions: [
+        { AttributeName: 'Board_Name', AttributeType: 'S' },
         { AttributeName: 'Player_ID', AttributeType: 'S' },
         // { AttributeName: 'Score', AttributeType: 'NS' },
         // { AttributeName: 'Date', AttributeType: 'S' },

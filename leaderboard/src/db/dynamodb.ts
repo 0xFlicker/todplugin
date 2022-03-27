@@ -24,6 +24,7 @@ export interface TableBoard {
 }
 
 export interface TableScores {
+  Board_Name: string;
   Player_ID: string;
   Score: number[];
   Date: string;

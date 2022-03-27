@@ -12,7 +12,7 @@ interface ScoreLike {
 declare global {
   namespace jest {
     interface Matchers<R, T> {
-      toHaveRanks(ranks: number[][]): R;
+      toHaveRanks(ranks: number[][]): Promise<R>;
       toHaveLeaderboard(scores: ScoreLike[]): R;
     }
   }
@@ -34,7 +34,7 @@ export function scoreMapToTableScores(input: { [key: string]: number[] }) {
   return Object.entries(input).reduce((memo, [id, value]) => {
     return [
       ...memo,
-      { Player_ID: id, Score: value, Date: new Date() },
+      { Player_ID: id, Score: value, Date: new Date().toUTCString() },
     ] as TableScores[];
   }, [] as TableScores[]);
 }
@@ -133,10 +133,10 @@ expect.extend({
           // @ts-ignore
           this.utils.matcherHint("toHaveRanks", undefined, undefined, options) +
           "\n\n" +
-          `Expected: ${this.utils.printExpected(calculatedRanks)}\n` +
-          `Received: ${this.utils.printReceived(ranks)}`
+          `Expected: ${this.utils.printExpected(ranks)}\n` +
+          `Received: ${this.utils.printReceived(calculatedRanks)}`
       : () => {
-          const diffString = diff(calculatedRanks, ranks, {
+          const diffString = diff(ranks, calculatedRanks, {
             expand: this.expand,
           });
           return (
@@ -150,8 +150,8 @@ expect.extend({
             "\n\n" +
             (diffString && diffString.includes("- Expect")
               ? `Difference:\n\n${diffString}`
-              : `Expected: ${this.utils.printExpected(calculatedRanks)}\n` +
-                `Received: ${this.utils.printReceived(ranks)}`)
+              : `Expected: ${this.utils.printExpected(ranks)}\n` +
+                `Received: ${this.utils.printReceived(calculatedRanks)}`)
           );
         };
     return Promise.resolve({ actual: calculatedRanks, message, pass });

@@ -46,10 +46,12 @@ describe("Ranker", () => {
           scores: {
             Keys: [
               {
-                Player_ID: `${rootKey}|foo`,
+                Player_ID: `foo`,
+                Board_Name: rootKey,
               },
               {
-                Player_ID: `${rootKey}|bar`,
+                Player_ID: `bar`,
+                Board_Name: rootKey,
               },
             ],
           },
@@ -78,14 +80,14 @@ describe("Ranker", () => {
       })
     );
     expect(await ranker.totalRankedScore()).toEqual(2);
-    expect(ranker).toHaveRanks([[10], [5]]);
+    await expect(ranker).toHaveRanks([[10], [5]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|bar`, Score: [10] },
-      { Player_ID: `${rootKey}|foo`, Score: [5] },
+      { Player_ID: `bar`, Score: [10] },
+      { Player_ID: `foo`, Score: [5] },
     ]);
   });
 
-  it.only("has expected ranks", async () => {
+  it("has expected ranks", async () => {
     const db = createDb();
     const rootKey = createUuid();
     const ranker = await initRanker({
@@ -105,12 +107,12 @@ describe("Ranker", () => {
     );
     await ranker.findRanks([[5], [10]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|fizz`, Score: [20] },
-      { Player_ID: `${rootKey}|baz`, Score: [15] },
-      { Player_ID: `${rootKey}|bar`, Score: [10] },
-      { Player_ID: `${rootKey}|foo`, Score: [5] },
+      { Player_ID: `fizz`, Score: [20] },
+      { Player_ID: `baz`, Score: [15] },
+      { Player_ID: `bar`, Score: [10] },
+      { Player_ID: `foo`, Score: [5] },
     ]);
-  });
+  }, 300000);
 
   it("can update scores", async () => {
     const db = createDb();
@@ -130,12 +132,12 @@ describe("Ranker", () => {
         fizz: [60],
       })
     );
-    expect(ranker).toHaveRanks([[60], [45], [16], [15]]);
+    await expect(ranker).toHaveRanks([[60], [45], [16], [15]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|fizz`, Score: [60] },
-      { Player_ID: `${rootKey}|baz`, Score: [45] },
-      { Player_ID: `${rootKey}|bar`, Score: [16] },
-      { Player_ID: `${rootKey}|foo`, Score: [15] },
+      { Player_ID: `fizz`, Score: [60] },
+      { Player_ID: `baz`, Score: [45] },
+      { Player_ID: `bar`, Score: [16] },
+      { Player_ID: `foo`, Score: [15] },
     ]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
@@ -148,10 +150,10 @@ describe("Ranker", () => {
 
     await expect(ranker).toHaveRanks([[600], [25], [16], [5]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|fizz`, Score: [600] },
-      { Player_ID: `${rootKey}|foo`, Score: [25] },
-      { Player_ID: `${rootKey}|bar`, Score: [16] },
-      { Player_ID: `${rootKey}|baz`, Score: [5] },
+      { Player_ID: `fizz`, Score: [600] },
+      { Player_ID: `foo`, Score: [25] },
+      { Player_ID: `bar`, Score: [16] },
+      { Player_ID: `baz`, Score: [5] },
     ]);
   });
 
@@ -175,22 +177,22 @@ describe("Ranker", () => {
     );
     await expect(ranker).toHaveRanks([[60], [45], [45], [15]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|fizz`, Score: [60] },
-      { Player_ID: `${rootKey}|baz`, Score: [45] },
-      { Player_ID: `${rootKey}|bar`, Score: [45] },
-      { Player_ID: `${rootKey}|foo`, Score: [15] },
+      { Player_ID: `fizz`, Score: [60] },
+      { Player_ID: `baz`, Score: [45] },
+      { Player_ID: `bar`, Score: [45] },
+      { Player_ID: `foo`, Score: [15] },
     ]);
 
     const removed = await ranker.removeScores(["bar", "fizz"]);
     expect(removed).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "bar",
-          value: [45],
+          Player_ID: "bar",
+          Score: [45],
         }),
         expect.objectContaining({
-          id: "fizz",
-          value: [60],
+          Player_ID: "fizz",
+          Score: [60],
         }),
       ])
     );
@@ -199,10 +201,10 @@ describe("Ranker", () => {
 
     await expect(ranker).toHaveRanks([[45], [15]]);
     expect(await ranker.leaderboard()).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|baz`, Score: [45] },
-      { Player_ID: `${rootKey}|foo`, Score: [15] },
+      { Player_ID: `baz`, Score: [45] },
+      { Player_ID: `foo`, Score: [15] },
     ]);
-  });
+  }, 300000);
 
   it("supports tie breakers", async () => {
     const db = createDb();
@@ -229,10 +231,10 @@ describe("Ranker", () => {
       [333, 48],
     ]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|baz`, Score: [750, 45] },
-      { Player_ID: `${rootKey}|fizz`, Score: [750, 40] },
-      { Player_ID: `${rootKey}|bar`, Score: [500, 15] },
-      { Player_ID: `${rootKey}|foo`, Score: [333, 48] },
+      { Player_ID: `baz`, Score: [750, 45] },
+      { Player_ID: `fizz`, Score: [750, 40] },
+      { Player_ID: `bar`, Score: [500, 15] },
+      { Player_ID: `foo`, Score: [333, 48] },
     ]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
@@ -249,10 +251,10 @@ describe("Ranker", () => {
       [150, 40],
     ]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|bar`, Score: [600, 25] },
-      { Player_ID: `${rootKey}|foo`, Score: [600, 20] },
-      { Player_ID: `${rootKey}|baz`, Score: [150, 45] },
-      { Player_ID: `${rootKey}|fizz`, Score: [150, 40] },
+      { Player_ID: `bar`, Score: [600, 25] },
+      { Player_ID: `foo`, Score: [600, 20] },
+      { Player_ID: `baz`, Score: [150, 45] },
+      { Player_ID: `fizz`, Score: [150, 40] },
     ]);
   });
 
@@ -276,10 +278,10 @@ describe("Ranker", () => {
     );
     await expect(ranker).toHaveRanks([[60], [45], [16], [15]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|fizz`, Score: [60] },
-      { Player_ID: `${rootKey}|baz`, Score: [45] },
-      { Player_ID: `${rootKey}|bar`, Score: [16] },
-      { Player_ID: `${rootKey}|foo`, Score: [15] },
+      { Player_ID: `fizz`, Score: [60] },
+      { Player_ID: `baz`, Score: [45] },
+      { Player_ID: `bar`, Score: [16] },
+      { Player_ID: `foo`, Score: [15] },
     ]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
@@ -290,11 +292,11 @@ describe("Ranker", () => {
     );
     await expect(ranker).toHaveRanks([[900], [600], [16], [15], [5]]);
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|buzz`, Score: [900] },
-      { Player_ID: `${rootKey}|fizz`, Score: [600] },
-      { Player_ID: `${rootKey}|bar`, Score: [16] },
-      { Player_ID: `${rootKey}|foo`, Score: [15] },
-      { Player_ID: `${rootKey}|baz`, Score: [5] },
+      { Player_ID: `buzz`, Score: [900] },
+      { Player_ID: `fizz`, Score: [600] },
+      { Player_ID: `bar`, Score: [16] },
+      { Player_ID: `foo`, Score: [15] },
+      { Player_ID: `baz`, Score: [5] },
     ]);
   });
 
@@ -314,7 +316,7 @@ describe("Ranker", () => {
         a: [0],
       })
     );
-    expect(leaderboard).toHaveLeaderboard([{ Player_ID: "a", Score: [0] }]);
+    expect(leaderboard).toHaveLeaderboard([{ Player_ID: `a`, Score: [0] }]);
   });
 
   it("Can insert several past max", async () => {
@@ -333,15 +335,15 @@ describe("Ranker", () => {
         a: [1],
       })
     );
-    expect(leaderboard).toHaveLeaderboard([{ Player_ID: "a", Score: [1] }]);
+    expect(leaderboard).toHaveLeaderboard([{ Player_ID: `a`, Score: [1] }]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
         b: [2],
       })
     );
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|b`, Score: [2] },
-      { Player_ID: `${rootKey}|a`, Score: [1] },
+      { Player_ID: `b`, Score: [2] },
+      { Player_ID: `a`, Score: [1] },
     ]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
@@ -350,8 +352,8 @@ describe("Ranker", () => {
       })
     );
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|c`, Score: [3] },
-      { Player_ID: `${rootKey}|b`, Score: [2] },
+      { Player_ID: `c`, Score: [3] },
+      { Player_ID: `b`, Score: [2] },
     ]);
     leaderboard = await rankAndStack(
       scoreMapToTableScores({
@@ -359,8 +361,8 @@ describe("Ranker", () => {
       })
     );
     expect(leaderboard).toHaveLeaderboard([
-      { Player_ID: `${rootKey}|c`, Score: [3] },
-      { Player_ID: `${rootKey}|b`, Score: [2] },
+      { Player_ID: `c`, Score: [3] },
+      { Player_ID: `b`, Score: [2] },
     ]);
   });
 
@@ -391,15 +393,15 @@ describe("Ranker", () => {
     );
     expect(leaderboard).toHaveLeaderboard([
       {
-        Player_ID: `${rootKey}|d`,
+        Player_ID: `d`,
         Score: [200],
       },
       {
-        Player_ID: `${rootKey}|f`,
+        Player_ID: `f`,
         Score: [180],
       },
       {
-        Player_ID: `${rootKey}|e`,
+        Player_ID: `e`,
         Score: [150],
       },
     ]);
