@@ -1,0 +1,136 @@
+{
+  "name": "@tod/leaderboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "LEADERBOARD_LOG_LEVEL=error jest",
+    "test:coverage": "LEADERBOARD_LOG_LEVEL=error jest --coverage",
+    "build": "node build-schema && tsc -b",
+    "cli": "NODE_CONFIG_TS_DIR=src/config FAST_EXIT=1 ts-node --files src/cli",
+    "tsc:watch": "tsc -b --watch --preserveWatchOutput",
+    "schema:watch": "node build-schema --watch",
+    "dev": "DEPLOYMENT=local run-p --race schema:watch tsc:watch leaderboard:watch pubsub:transformed:watch pubsub:watch pubsub:dedupe:watch",
+    "leaderboard:start": "NODE_CONFIG_TS_DIR=src/config functions-framework --port=8081 --target=leaderboard --trigger-http",
+    "leaderboard:watch": "npm-watch leaderboard:start",
+    "leaderboard:dev": "run-p --race schema:watch tsc:watch leaderboard:watch"
+  },
+  "watch": {
+    "leaderboard:start": {
+      "patterns": [
+        "lib/**/*.js"
+      ],
+      "delay": 500
+    },
+    "pubsub:transformed:start": {
+      "patterns": [
+        "lib/**/*.js"
+      ],
+      "delay": 500
+    },
+    "pubsub:scores:start": {
+      "patterns": [
+        "lib/**/*.js"
+      ],
+      "delay": 500
+    },
+    "pubsub:dedupe:start": {
+      "patterns": [
+        "lib/**/*.js"
+      ],
+      "delay": 500
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.56.0",
+    "aws-sdk": "^2.1101.0",
+    "body-parser": "^1.19.0",
+    "bottleneck": "^2.19.5",
+    "bson-ext": "^2.0.2",
+    "cors": "^2.8.5",
+    "debug": "^4.1.1",
+    "dotenv": "^8.0.0",
+    "es6-promise-pool": "^2.5.0",
+    "express": "^4.17.1",
+    "glicko2": "^0.8.4",
+    "node-cleanup": "^2.1.2",
+    "openapi-enforcer": "^1.5.2",
+    "pg": "^7.12.0",
+    "progress": "^2.0.3",
+    "ramda": "^0.26.1",
+    "shutterstock-mold": "^1.0.1",
+    "supports-color": "^7.0.0",
+    "swagger-ui-express": "^4.1.1",
+    "uuid": "^3.3.3",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@aws-sdk/lib-dynamodb": "3",
+    "@aws-sdk/smithy-client": "^3",
+    "@aws-sdk/types": "3",
+    "@aws-sdk/util-dynamodb": "3",
+    "@babel/core": "^7.12.0",
+    "@babel/plugin-syntax-bigint": "^7.8.3",
+    "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-typescript": "^7.16.7",
+    "@google-cloud/functions-framework": "^1.2.1",
+    "@shelf/jest-dynamodb": "^2.2.3",
+    "@types/cors": "^2.8.6",
+    "@types/debug": "^4.1.5",
+    "@types/express": "^4.17.1",
+    "@types/faker": "^4.1.5",
+    "@types/flat": "0.0.28",
+    "@types/jest": "^24.0.18",
+    "@types/lodash.get": "^4.4.6",
+    "@types/lodash.mergewith": "^4.6.6",
+    "@types/lodash.set": "^4.3.6",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^13.9.1",
+    "@types/node-cleanup": "^2.1.1",
+    "@types/pg": "^7.4.14",
+    "@types/progress": "^2.0.3",
+    "@types/ramda": "^0.26.21",
+    "@types/swagger-ui-express": "^3.0.1",
+    "@types/uuid": "^3.4.5",
+    "axios": "^0.19.0",
+    "babel-jest": "^24.9.0",
+    "babel-plugin-jest-hoist": "^27.5.1",
+    "chokidar": "^3.1.1",
+    "commander": "^5.0.0",
+    "faker": "^4.1.0",
+    "firebase-tools": "^7.11.0",
+    "get-port": "^5.0.0",
+    "jest": "^27.5.1",
+    "jest-diff": "^24.8.0",
+    "lodash.get": "^4.4.2",
+    "lodash.mergewith": "^4.6.2",
+    "lodash.set": "^4.3.2",
+    "minimist": "^1.2.0",
+    "nodemon": "^1.19.1",
+    "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.6.0",
+    "postgres-interval": "^1.2.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "jest": {
+    "preset": "@shelf/jest-dynamodb",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "babel-jest"
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.ts$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ]
+  }
+}

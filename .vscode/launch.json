@@ -10,6 +10,24 @@
       "request": "attach",
       "hostName": "localhost",
       "port": "5005"
+    },
+    {
+      "name": "Debug Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "env": {
+        "DEBUG": "trace:*"
+      },
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/leaderboard/node_modules/.bin/jest",
+        "--runInBand",
+        "--testPathPattern=src/ranker/ranker.test.ts"
+      ],
+      "cwd": "${workspaceFolder}/leaderboard",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "port": 9229
     }
   ]
 }

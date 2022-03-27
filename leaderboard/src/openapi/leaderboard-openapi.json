@@ -1,0 +1,111 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "version": "0.0.1",
+    "title": "Swagger Leaderboard"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/"
+    }
+  ],
+  "paths": {
+    "/{experience}/{location}/{timeframe}": {
+      "get": {
+        "tags": [
+          "Leaderboard"
+        ],
+        "description": "Get a specific leaderboard",
+        "operationId": "getLeaderboard",
+        "parameters": [
+          {
+            "name": "experience",
+            "in": "path",
+            "description": "The experience to get scores from",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Experiences"
+            }
+          },
+          {
+            "name": "timeframe",
+            "in": "path",
+            "description": "The period length of time for the leaderboard",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TimeFrame"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "The number of records to include",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Start leaderboard from this record",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Experiences": {
+        "type": "string",
+        "enum": [
+          "potatoes"
+        ]
+      },
+      "TimeFrame": {
+        "type": "string",
+        "enum": [
+          "alltime",
+          "weekly",
+          "daily"
+        ]
+      },
+      "LeaderboardResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Player"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      },
+      "Player": {
+        "type": "object"
+      }
+    }
+  }
+}
