@@ -10,7 +10,7 @@
     }
   ],
   "paths": {
-    "/{experience}/{location}/{timeframe}": {
+    "/{experience}/{timeframe}": {
       "get": {
         "tags": [
           "Leaderboard"

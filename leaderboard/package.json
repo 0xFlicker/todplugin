@@ -56,7 +56,7 @@
     "express": "^4.17.1",
     "glicko2": "^0.8.4",
     "node-cleanup": "^2.1.2",
-    "openapi-enforcer": "^1.5.2",
+    "openapi-enforcer": "^1.17.0",
     "pg": "^7.12.0",
     "progress": "^2.0.3",
     "ramda": "^0.26.1",

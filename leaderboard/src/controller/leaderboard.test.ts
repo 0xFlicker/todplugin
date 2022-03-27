@@ -5,12 +5,19 @@ import axios from "axios";
 import * as openapi from "../openapi";
 import { fakesScores } from "../utils/faker";
 import { leaderboard } from "./leaderboard";
+import createRanker from "../ranker/ranker";
+import createDb from "../db/dynamodb";
 
 describe("leaderboard", () => {
-  function mockDefs() {
+  async function mockDefs() {
     return [
       {
-        ranker: {},
+        ranker: await createRanker({
+          rootKey: "potatoes",
+          scoreRange: [0, 10001],
+          branchingFactor: 100,
+          db: createDb(),
+        }),
         experience: "potatoes",
         timeFrame: "alltime",
         async read() {
