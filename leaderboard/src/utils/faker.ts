@@ -48,6 +48,7 @@ export function fakesScores(amount: number = defaultAmount) {
 export function fakeScore(): TableScores {
   return {
     Player_ID: faker.random.uuid(),
+    Board_Name: faker.random.uuid(),
     Date: recent(DAY).toUTCString(),
     Score: [randomRange(0, 100), randomRange(0, 100)],
   };

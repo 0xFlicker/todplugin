@@ -15,7 +15,6 @@
  */
 
 import logger from "../utils/debug";
-import debounceQueue from "../utils/debounceQueue";
 import { scoreLT, scoreSort } from "../utils/score";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { TableLeaderboards, TableNodes, TableScores } from "../db/dynamodb";
@@ -41,6 +40,7 @@ export interface Ranker {
   removeScores(scores: string[]): Promise<TableScores[]>;
   setScores(scores: TableScores[]): Promise<[TableScores[], TableScores[]]>;
   totalRankedScore(): Promise<number>;
+  fetchScore(playerId: string): Promise<TableScores | null>;
   findScore(rank: number): Promise<null | [number[], number]>;
   findRanks(scores: number[][]): Promise<number[]>;
   leaderboardUpdate(
@@ -54,11 +54,6 @@ export interface Ranker {
 interface KeyToDataMap<T> {
   [key: string]: T;
 }
-
-interface Node {
-  childCounts: Array<number>;
-}
-
 function arrayEq(a1: Array<any>, a2: Array<any>): boolean {
   return a1.length === a2.length && a1.every((a, i) => a === a2[i]);
 }
@@ -403,10 +398,13 @@ async function createRanker({
       })
       .promise();
     const nodes = nodeRequest.Responses?.nodes
-      ? nodeRequest.Responses?.nodes?.reduce((memo, result, i) => {
-          memo[result.Node_ID] = result;
-          return memo;
-        }, {})
+      ? (nodeRequest.Responses?.nodes as DocumentClient.AttributeMap[]).reduce(
+          (memo, result) => {
+            memo[result.Node_ID] = result;
+            return memo;
+          },
+          {}
+        )
       : {};
     return nodes;
   }
@@ -639,10 +637,9 @@ async function createRanker({
       : { Responses: { scores: [] } };
 
     const saveNodes: Array<[string, TableScores]> = scoreDocs?.Responses?.scores
-      ? scoreDocs?.Responses?.scores.map((result) => [
-          result.Player_ID,
-          <TableScores>result,
-        ])
+      ? (scoreDocs?.Responses?.scores as DocumentClient.AttributeMap[]).map(
+          (result) => [result.Player_ID, <TableScores>result]
+        )
       : [];
     const oldScores = {};
     for (let [key, oldScore] of saveNodes) {
@@ -976,6 +973,22 @@ async function createRanker({
     return findScoreRecursive(0, rank, scoreRange, false);
   }
 
+  async function fetchScore(playerId: string): Promise<TableScores | null> {
+    const response = await db
+      .get({
+        TableName: "scores",
+        Key: {
+          Player_ID: playerId,
+          Board_Name: rootKey,
+        },
+      })
+      .promise();
+    if (!response.Item) {
+      return null;
+    }
+    return response.Item as TableScores;
+  }
+
   /**
    * Returns the total number of ranked scores.
    *
@@ -1233,6 +1246,7 @@ async function createRanker({
     removeScores,
     setScores,
     totalRankedScore,
+    fetchScore,
     findScore,
     findRanks,
     leaderboardUpdate,

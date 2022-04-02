@@ -14,7 +14,7 @@ const processFile = file =>
     .then(safeLoad)
     .then(contents => writeFileAsync(`${file}.json`, JSON.stringify(contents, null, 2), 'utf8'))
 
-const watcher = chokidar.watch('./src/openapi/*.yaml', {
+const watcher = chokidar.watch(['./src/openapi/*.yaml', './src/defs/*.yaml'], {
   ignored: /.*\.json$/, // ignore json output
   persistent: !!args.watch
 })

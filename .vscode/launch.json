@@ -21,8 +21,8 @@
       "runtimeArgs": [
         "--inspect-brk",
         "${workspaceRoot}/leaderboard/node_modules/.bin/jest",
-        "--runInBand",
-        "--testPathPattern=src/ranker/ranker.test.ts"
+        "--runInBand"
+        // "--testPathPattern=src/ranker/ranker.test.ts"
       ],
       "cwd": "${workspaceFolder}/leaderboard",
       "console": "integratedTerminal",

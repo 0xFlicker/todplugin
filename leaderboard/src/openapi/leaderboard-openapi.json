@@ -73,7 +73,7 @@
       "Experiences": {
         "type": "string",
         "enum": [
-          "potatoes"
+          "potato"
         ]
       },
       "TimeFrame": {

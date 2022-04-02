@@ -6,14 +6,12 @@
   "scripts": {
     "test": "LEADERBOARD_LOG_LEVEL=error jest",
     "test:coverage": "LEADERBOARD_LOG_LEVEL=error jest --coverage",
-    "build": "node build-schema && tsc -b",
-    "cli": "NODE_CONFIG_TS_DIR=src/config FAST_EXIT=1 ts-node --files src/cli",
+    "build": "node build-schema && ./node_modules/typescript/bin/tsc -b",
+    "cli": "FAST_EXIT=1 ts-node --files src/cli",
     "tsc:watch": "tsc -b --watch --preserveWatchOutput",
     "schema:watch": "node build-schema --watch",
-    "dev": "DEPLOYMENT=local run-p --race schema:watch tsc:watch leaderboard:watch pubsub:transformed:watch pubsub:watch pubsub:dedupe:watch",
-    "leaderboard:start": "NODE_CONFIG_TS_DIR=src/config functions-framework --port=8081 --target=leaderboard --trigger-http",
-    "leaderboard:watch": "npm-watch leaderboard:start",
-    "leaderboard:dev": "run-p --race schema:watch tsc:watch leaderboard:watch"
+    "invoke:test:notification": "sam build && sam local generate-event sns notification | sam local invoke -e -",
+    "dev": "DEPLOYMENT=local run-p --race schema:watch tsc:watch leaderboard:watch pubsub:transformed:watch pubsub:watch pubsub:dedupe:watch"
   },
   "watch": {
     "leaderboard:start": {
@@ -45,6 +43,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.56.0",
+    "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1101.0",
     "body-parser": "^1.19.0",
     "bottleneck": "^2.19.5",
@@ -78,6 +77,7 @@
     "@babel/preset-typescript": "^7.16.7",
     "@google-cloud/functions-framework": "^1.2.1",
     "@shelf/jest-dynamodb": "^2.2.3",
+    "@types/aws-lambda": "^8.10.93",
     "@types/cors": "^2.8.6",
     "@types/debug": "^4.1.5",
     "@types/express": "^4.17.1",
