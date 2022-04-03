@@ -1,0 +1,25 @@
+openapi: 3.0.2
+info:
+  version: 0.0.1
+  title: Swagger Leaderboard
+servers:
+  - url: http://localhost:8080
+components:
+  schemas:
+    PlayerRequest:
+      type: "object"
+      properties:
+        playerId:
+          type: "string"
+    Experiences:
+      type: "string"
+      enum:
+        - "potato"
+    TimeFrame:
+      type: "string"
+      enum:
+        - "alltime"
+        - "weekly"
+        - "daily"
+    Player:
+      type: "object"

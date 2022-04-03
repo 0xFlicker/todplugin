@@ -38,7 +38,9 @@ export interface RankerOpts {
 export interface Ranker {
   expireScores(): Promise<TableScores[]>;
   removeScores(scores: string[]): Promise<TableScores[]>;
-  setScores(scores: TableScores[]): Promise<[TableScores[], TableScores[]]>;
+  setScores(
+    scores: Partial<TableScores>[]
+  ): Promise<[TableScores[], TableScores[]]>;
   totalRankedScore(): Promise<number>;
   fetchScore(playerId: string): Promise<TableScores | null>;
   findScore(rank: number): Promise<null | [number[], number]>;
@@ -1019,7 +1021,7 @@ async function createRanker({
    * @param scores A dict mapping entity names (strings) to scores (integer lists)
    */
   async function setScores(
-    scores: TableScores[]
+    scores: Partial<TableScores>[]
   ): Promise<[TableScores[], TableScores[]]> {
     // // Add ranker namespace to score if needed
     // scores = scores.map((score) => ({

@@ -1,5 +1,4 @@
 import { Express } from "express";
-import swaggerUI from "swagger-ui-express";
 import type { OpenApiV3 } from "openapi-enforcer";
 import logger from "../utils/logger";
 import { NotFoundError } from "./errors";
@@ -7,30 +6,13 @@ import { LeaderboardDef } from "../defs/types";
 
 export async function leaderboard(
   defs: LeaderboardDef[],
-  leaderboardSchema: object,
   leaderboardOpenapi: OpenApiV3.OpenApiV3
 ) {
-  return (app: Express) => {
-    app.use("/docs", swaggerUI.serve, swaggerUI.setup(leaderboardSchema));
+  return (expressApp: Express) => {
     for (let def of defs) {
-      // app.get(route, async (req, res) => {
-      //   try {
-      //     const response = await def.leaderboard(req.query);
-      //     return res.status(200).send(response);
-      //   } catch (error) {
-      //     if (error instanceof NotFoundError) {
-      //       return res.status(404).send({
-      //         message: "No leaderboard found",
-      //       });
-      //     } else {
-      //       logger.error(`Error loading leaderboard ${route}`, error);
-      //       return res.status(500).send("ERROR");
-      //     }
-      //   }
-      // });
       for (let period of Object.values(def.periods)) {
-        const route = `/${period.boardName}/${period.periodName}`;
-        app.get(route, async (req, res) => {
+        const route = `/leaderboard/${period.boardName}/${period.periodName}`;
+        expressApp.get(route, async (req, res) => {
           try {
             const openApiRequest = leaderboardOpenapi.request({
               header: req.header,

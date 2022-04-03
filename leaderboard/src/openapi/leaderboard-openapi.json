@@ -1,16 +1,6 @@
 {
-  "openapi": "3.0.2",
-  "info": {
-    "version": "0.0.1",
-    "title": "Swagger Leaderboard"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8080/"
-    }
-  ],
   "paths": {
-    "/{experience}/{timeframe}": {
+    "/leaderboard/{experience}/{timeframe}": {
       "get": {
         "tags": [
           "Leaderboard"
@@ -70,20 +60,6 @@
   },
   "components": {
     "schemas": {
-      "Experiences": {
-        "type": "string",
-        "enum": [
-          "potato"
-        ]
-      },
-      "TimeFrame": {
-        "type": "string",
-        "enum": [
-          "alltime",
-          "weekly",
-          "daily"
-        ]
-      },
       "LeaderboardResponse": {
         "type": "object",
         "properties": {
@@ -102,9 +78,6 @@
             }
           }
         }
-      },
-      "Player": {
-        "type": "object"
       }
     }
   }

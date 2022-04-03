@@ -16,7 +16,7 @@
       "type": "node",
       "request": "launch",
       "env": {
-        "DEBUG": "trace:*"
+        // "DEBUG": "trace:*"
       },
       "runtimeArgs": [
         "--inspect-brk",
