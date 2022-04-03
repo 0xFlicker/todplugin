@@ -39,7 +39,7 @@ export async function rankingController(
 
           const { error: responseError, warning: responseWarning } = validation;
           if (responseError || responseWarning) {
-            logger.error(`Validation error on response for ${route}`, {
+            logger.error(`Validation error on response for ${def.name}`, {
               error: responseError,
               warning: responseWarning,
             });

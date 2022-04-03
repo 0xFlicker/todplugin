@@ -1,7 +1,7 @@
 import diff from "jest-diff";
 import { compose } from "ramda";
 import { TableScores } from "../db/dynamodb";
-import { Ranker } from "./ranker";
+import { Ranker, ScoreInput } from "./ranker";
 
 interface ScoreLike {
   Player_ID?: string;
@@ -13,15 +13,15 @@ declare global {
   namespace jest {
     interface Matchers<R, T> {
       toHaveRanks(ranks: number[][]): Promise<R>;
-      toHaveLeaderboard(scores: ScoreLike[]): R;
+      toHaveLeaderboard(scores: ScoreInput[]): R;
     }
   }
 }
 
-function isLikeScore(expected: ScoreLike[]) {
+function isLikeScore(expected: ScoreInput[]) {
   return (r: ScoreLike) =>
     expected.find(
-      ({ Player_ID, Score }) =>
+      ({ playerId: Player_ID, score: Score }) =>
         r.Player_ID === Player_ID &&
         Score &&
         r.Score &&
@@ -30,13 +30,25 @@ function isLikeScore(expected: ScoreLike[]) {
     );
 }
 
+function isLikeScoreOpposite(expected: ScoreLike[]) {
+  return (r: ScoreInput) =>
+    expected.find(
+      ({ Player_ID, Score }) =>
+        r.playerId === Player_ID &&
+        Score &&
+        r.score &&
+        Score.length === r.score.length &&
+        Score.every((v, i) => v === r.score[i])
+    );
+}
+
 export function scoreMapToTableScores(input: { [key: string]: number[] }) {
   return Object.entries(input).reduce((memo, [id, value]) => {
     return [
       ...memo,
-      { Player_ID: id, Score: value, Date: new Date().toUTCString() },
-    ] as TableScores[];
-  }, [] as TableScores[]);
+      { playerId: id, score: value, Date: new Date().toUTCString() },
+    ] as ScoreInput[];
+  }, [] as ScoreInput[]);
 }
 
 export function createRankAndStack(ranker: Ranker) {
@@ -46,8 +58,8 @@ export function createRankAndStack(ranker: Ranker) {
       await ranker.leaderboardUpdate(input, output);
       return await ranker.leaderboard();
     },
-    async (scores: TableScores[]) => await ranker.setScores(scores),
-    (input: { [key: string]: number[] } | TableScores[]): TableScores[] => {
+    async (scores: ScoreInput[]) => await ranker.setScores(scores),
+    (input: { [key: string]: number[] } | ScoreInput[]): ScoreInput[] => {
       if (Array.isArray(input)) {
         return input;
       }
@@ -57,14 +69,14 @@ export function createRankAndStack(ranker: Ranker) {
 }
 
 expect.extend({
-  toHaveLeaderboard(received: TableScores[], expected: ScoreLike[]) {
+  toHaveLeaderboard(received: TableScores[], expected: ScoreInput[]) {
     const options = {
       comment: "is leaderboard",
       isNot: this.isNot,
     };
     const pass =
       received.every(isLikeScore(expected)) &&
-      expected.every(isLikeScore(received));
+      expected.every(isLikeScoreOpposite(received));
 
     const message = pass
       ? () =>

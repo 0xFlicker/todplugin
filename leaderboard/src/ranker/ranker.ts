@@ -35,12 +35,16 @@ export interface RankerOpts {
   db: DocumentClient;
 }
 
+export interface ScoreInput {
+  playerId: string;
+  date?: string | Date;
+  score: number[];
+}
+
 export interface Ranker {
   expireScores(): Promise<TableScores[]>;
   removeScores(scores: string[]): Promise<TableScores[]>;
-  setScores(
-    scores: Partial<TableScores>[]
-  ): Promise<[TableScores[], TableScores[]]>;
+  setScores(scores: ScoreInput[]): Promise<[TableScores[], TableScores[]]>;
   totalRankedScore(): Promise<number>;
   fetchScore(playerId: string): Promise<TableScores | null>;
   findScore(rank: number): Promise<null | [number[], number]>;
@@ -605,7 +609,7 @@ async function createRanker({
    *  nodes.
    */
   async function computeScoreDeltas(
-    scores: TableScores[],
+    scores: ScoreInput[],
     scoresToRemove: TableScores[]
   ): Promise<
     [
@@ -622,7 +626,7 @@ async function createRanker({
           scores
         )} scoresToRemove: ${JSON.stringify(scoresToRemove)}`
     );
-    const scoreKeys = scores.map(({ Player_ID: id }) => id);
+    const scoreKeys = scores.map(({ playerId: id }) => id);
     const scoreDocs = scoreKeys.length
       ? await db
           .batchGet({
@@ -656,8 +660,16 @@ async function createRanker({
       scoreDeltas.set(value, (scoreDeltas.get(value) || 0) - 1);
       scoreEntsDel.push(id);
     }
-    for (let { Player_ID: id, Date: date, Score: value } of scores) {
+    for (let { playerId: id, date, score: value } of scores) {
       let newScore: TableScores;
+      let dateString;
+      if (typeof date === "string") {
+        dateString = date;
+      } else if (date) {
+        dateString = date.toISOString();
+      } else {
+        dateString = new Date().toISOString();
+      }
       log(() => `computing ${id}: [${value.join(", ")}]`);
       const scoreKey = id;
       if (scoreKey in oldScores) {
@@ -668,19 +680,18 @@ async function createRanker({
           (scoreDeltas.get(newScore.Score) || 0) - 1
         );
       } else {
-        log("new score");
         newScore = {
           Board_Name: rootKey,
           Player_ID: id,
           Score: [],
-          Date: date,
+          Date: dateString,
         };
       }
       if (value) {
         log(() => `creating +1 delta for ${JSON.stringify(value)}`);
         scoreDeltas.set(value, (scoreDeltas.get(value) || 0) + 1);
         newScore.Score = value;
-        newScore.Date = date;
+        newScore.Date = dateString;
         scoreEnts[scoreKey] = newScore;
       } else if (id in oldScores) {
         log(`delete ${scoreKey}`);
@@ -1021,21 +1032,14 @@ async function createRanker({
    * @param scores A dict mapping entity names (strings) to scores (integer lists)
    */
   async function setScores(
-    scores: Partial<TableScores>[]
+    scores: ScoreInput[]
   ): Promise<[TableScores[], TableScores[]]> {
-    // // Add ranker namespace to score if needed
-    // scores = scores.map((score) => ({
-    //   ...score,
-    //   Player_ID: score.Player_ID.includes("|")
-    //     ? score.Player_ID
-    //     : `${rootKey}|${score.Player_ID}`,
-    // }));
     log(
-      () => `New scores ${JSON.stringify(scores.map((s) => `${s.Player_ID}`))}`
+      () => `New scores ${JSON.stringify(scores.map((s) => `${s.playerId}`))}`
     );
     // Find any scores that are expired and not present in new batch
     const scoresToRemove = (await expiredScores()).filter(({ Player_ID }) =>
-      scores.find((newScores) => newScores.Player_ID !== Player_ID)
+      scores.find((newScores) => newScores.playerId !== Player_ID)
     );
     log(
       () =>

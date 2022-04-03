@@ -19,9 +19,9 @@ export interface LeaderboardDef extends Scorer {
   description?: string;
   branchingFactor: number;
   scoreRange: number[];
-  
+
   ranks(opt: { playerId: string }): Promise<RankResponse>;
-  periods: Record<string, PeriodDef;
+  periods: Record<string, PeriodDef>;
 }
 
 export interface RankResponse {

@@ -30,10 +30,9 @@ describe("score", () => {
     });
     await ranker.setScores([
       {
-        Player_ID: "foo",
-        Board_Name: "potato",
-        Date: new Date().toISOString(),
-        Score: [5],
+        playerId: "foo",
+        date: new Date().toISOString(),
+        score: [5],
       },
     ]);
     try {

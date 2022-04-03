@@ -27,24 +27,7 @@ export function ingest(defs: LeaderboardDef[]) {
       const { getRanker } = periodDef;
 
       const ranker = await getRanker();
-      const [scoresIn, scoresOut] = await ranker.setScores(
-        scores.map((score) => {
-          const { date } = score;
-          let dateString;
-          if (typeof date === "string") {
-            dateString = date;
-          } else if (date) {
-            dateString = date.toISOString();
-          } else {
-            dateString = new Date().toISOString();
-          }
-          return {
-            Player_ID: score.playerId,
-            Score: score.score,
-            Date: dateString,
-          };
-        })
-      );
+      const [scoresIn, scoresOut] = await ranker.setScores(scores);
       await ranker.leaderboardUpdate(scoresIn, scoresOut);
     }
   };
