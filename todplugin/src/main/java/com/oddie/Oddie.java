@@ -4,6 +4,8 @@ import com.oddie.command.Connect;
 import com.oddie.config.Config;
 import com.oddie.config.Wallet;
 import com.oddie.http.Server;
+import com.oddie.leaderboard.ScorePublisher;
+import com.oddie.listener.PlayerGrowsThingsListener;
 import com.oddie.listener.WalletLinkedListener;
 import com.oddie.web3.EthereumRpc;
 import com.oddie.web3.PolygonRpc;
@@ -11,6 +13,8 @@ import com.oddie.web3.WalletConnector;
 
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import software.amazon.awssdk.services.sns.SnsClient;
 
 public class Oddie extends JavaPlugin {
   private Config config;
@@ -37,7 +41,17 @@ public class Oddie extends JavaPlugin {
 
     this.connector = new WalletConnector(this.ethereumRpc, this.polygonRpc, this.config);
     this.getCommand("wallet").setExecutor(new Connect(this.connector));
+
+    var snsClient = this.startSnsClient();
+    var topicArn = this.config.getTopicArn();
+    var scorePublisher = new ScorePublisher(snsClient, topicArn);
+
     getServer().getPluginManager().registerEvents(new WalletLinkedListener(this.connector), this);
+    getServer().getPluginManager().registerEvents(new PlayerGrowsThingsListener(this, config, scorePublisher), this);
+  }
+
+  private SnsClient startSnsClient() {
+    return SnsClient.builder().build();
   }
 
   public void onDisable() {

@@ -78,7 +78,8 @@ Resources:
     Properties:
       DisplayName: PotatoScoreTopic
       FifoTopic: true
-      TopicName: !Sub "${ProjectName}-potato-score-topic-0.fifo"
+      TopicName: !Sub "${ProjectName}-potato-score-topic-1.fifo"
+      ContentBasedDeduplication: true
       Subscription:
         - Protocol: sqs
           Endpoint: !GetAtt PotatoScoreQueue.Arn

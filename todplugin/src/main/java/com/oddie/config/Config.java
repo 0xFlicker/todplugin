@@ -1,5 +1,7 @@
 package com.oddie.config;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +22,9 @@ public class Config {
   private String tlsKeyStore;
   private String tlsKeyStorePassword;
   private String connectWebpage;
+  private String potatoScoreTopicArn;
+  private URL leaderboardUrl;
+  private String experienceName;
   private boolean tls;
   private int port;
   private List<Wallet> wallets;
@@ -66,6 +71,25 @@ public class Config {
     if (this.contractAddress.isEmpty()) {
       Bukkit.getLogger()
           .warning("nftWorldsPlayerContractAddress is not set in config.yml. Please set a contract address.");
+      System.exit(1);
+    }
+
+    this.potatoScoreTopicArn = config.getString("potatoScoreTopicArn");
+    if (this.potatoScoreTopicArn.isEmpty()) {
+      Bukkit.getLogger()
+          .warning("potatoScoreTopicArn is not set in config.yml. Please set a topic arn for the potato score.");
+    }
+
+    this.experienceName = config.getString("experienceName");
+    if (this.experienceName.isEmpty()) {
+      Bukkit.getLogger()
+          .warning("experienceName is not set in config.yml. Please set a name for the experience.");
+    }
+
+    try {
+      this.leaderboardUrl = new URL(config.getString("leaderboardUrl"));
+    } catch (MalformedURLException e) {
+      Bukkit.getLogger().warning("leaderboardUrl is an invalid URL in config.yml. Please set a valid URL.");
       System.exit(1);
     }
 
@@ -180,5 +204,17 @@ public class Config {
       }
     }
     return null;
+  }
+
+  public String getTopicArn() {
+    return potatoScoreTopicArn;
+  }
+
+  public String getExperienceName() {
+    return experienceName;
+  }
+
+  public URL getLeaderboardUrl() {
+    return leaderboardUrl;
   }
 }

@@ -3,6 +3,7 @@ version: 1.0.0
 description: The official plugin of The Odd Dystrict
 author: 0xFlick
 main: com.oddie.Oddie
+api-version: 1.18
 depend:
   - LuckPerms
 commands:
