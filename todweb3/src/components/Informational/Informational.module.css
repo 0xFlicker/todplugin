@@ -1,0 +1,32 @@
+.modal {
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+
+  height: 20rem;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0);
+}
+
+.content {
+  position: absolute;
+  margin-left: 18px;
+  margin-right: 18px;
+  top: 50%;
+  transform: translate(0, -50%);
+  color: white;
+  font-size: 2rem;
+}
+
+.close {
+  margin: 15px;
+  cursor: pointer;
+  color: #fff;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}

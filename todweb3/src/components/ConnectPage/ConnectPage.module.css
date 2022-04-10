@@ -1,0 +1,13 @@
+.title {
+  color: #fae628;
+  text-transform: uppercase;
+  font-style: italic;
+  font-family: "Barlow", sans-serif;
+  font-size: 2.3rem;
+  font-weight: 700;
+  text-shadow: 0 0 18px rgb(234 201 87 / 60%);
+}
+
+.bg {
+  background-color: #171717;
+}

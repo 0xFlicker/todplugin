@@ -1,0 +1,40 @@
+.connect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: inline-block;
+  background: #fae628;
+  padding: 1.2em 2em 1em 2em;
+  color: #171717;
+  text-decoration: none;
+  font-family: Barlow;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-style: normal;
+  font-weight: 600;
+  transition: all 0.6s ease;
+  border: 2px solid #fae628;
+  box-shadow: 0 0 8px #fac928;
+
+  user-select: none;
+}
+
+.connect:hover {
+  color: #fae628;
+  background: #171717;
+  border: 2px solid #fae628;
+  box-shadow: 0 0 8px #fac928;
+}
+
+.bi::before {
+  display: inline-block;
+  vertical-align: +0.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.biRightArrow::before {
+  content: "→";
+}
