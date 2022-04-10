@@ -15,12 +15,7 @@ export async function leaderboardSchema() {
     rankingsFile,
     scoreFile
   );
-  try {
-    return await dereference(merged);
-  } catch (e: any) {
-    console.error(e.toString());
-    throw e;
-  }
+  return await dereference(merged);
 }
 
 export function leaderboardOpenapi(leaderboardSchema: object) {

@@ -4,7 +4,7 @@ import mold from "shutterstock-mold";
 import axios from "axios";
 import createDb from "../db/dynamodb";
 import * as openapi from "../openapi";
-import { leaderboard } from "./leaderboard";
+import { createLeaderboard } from "./leaderboard";
 import { createLeaderboardDefs } from "../defs";
 
 describe("leaderboard", () => {
@@ -16,7 +16,7 @@ describe("leaderboard", () => {
     });
     const $ = blueprint.factory();
     const app = express();
-    const leaderboardApp = await $(leaderboard);
+    const leaderboardApp = await $(createLeaderboard);
     const port = await getPort();
     leaderboardApp(app);
     const server = app.listen(port);
@@ -34,9 +34,6 @@ describe("leaderboard", () => {
           }),
         })
       );
-    } catch (err: any) {
-      console.log(JSON.stringify(err.response.data));
-      throw err;
     } finally {
       server.close();
     }

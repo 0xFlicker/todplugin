@@ -4,7 +4,7 @@ import logger from "../utils/logger";
 import { NotFoundError } from "./errors";
 import { LeaderboardDef } from "../defs/types";
 
-export async function leaderboard(
+export async function createLeaderboard(
   defs: LeaderboardDef[],
   leaderboardOpenapi: OpenApiV3.OpenApiV3
 ) {

@@ -2,3 +2,4 @@ lib
 .env
 coverage/
 node_modules/
+.aws-sam/

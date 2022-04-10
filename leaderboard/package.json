@@ -43,6 +43,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.56.0",
+    "@vendia/serverless-express": "^4.5.4",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1101.0",
     "body-parser": "^1.19.0",

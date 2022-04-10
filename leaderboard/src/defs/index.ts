@@ -20,7 +20,7 @@ function createLeaderboard(
     const allRanks: { rank: number; period: string }[] = [];
     let firstScore: number[] | null = null;
     // For each time period, look up the score and the rank
-    for (const [_, periodDef] of Object.entries(periods)) {
+    for (const periodDef of Object.values(periods)) {
       const ranker = await periodDef.getRanker();
       const player = await ranker.fetchScore(playerId);
       if (player) {

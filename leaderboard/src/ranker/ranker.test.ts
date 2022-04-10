@@ -1,5 +1,5 @@
 import initRanker, { ScoreInput } from "./ranker";
-import createDb, { TableScores } from "../db/dynamodb";
+import createDb from "../db/dynamodb";
 import {
   createRankAndStack,
   scoreMapToTableScores,

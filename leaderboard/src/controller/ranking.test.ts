@@ -6,7 +6,6 @@ import createDb from "../db/dynamodb";
 import * as openapi from "../openapi";
 import { rankingController } from "./ranking";
 import { createLeaderboardDefs } from "../defs";
-import createRanker from "../ranker/ranker";
 import { IInjectArgs, ingest } from "../ingest/core";
 
 describe("ranking", () => {

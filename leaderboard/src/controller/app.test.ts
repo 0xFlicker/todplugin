@@ -1,11 +1,10 @@
 import getPort from "get-port";
-import express from "express";
 import mold from "shutterstock-mold";
 import axios from "axios";
 import createDb from "../db/dynamodb";
 import * as openapi from "../openapi";
 import app from "./index";
-import { leaderboard } from "./leaderboard";
+import { createLeaderboard } from "./leaderboard";
 import { createLeaderboardDefs } from "../defs";
 
 describe("leaderboard", () => {
@@ -14,7 +13,7 @@ describe("leaderboard", () => {
       defs: createLeaderboardDefs,
       db: createDb,
       ...openapi,
-      leaderboard: () => leaderboard,
+      leaderboard: () => createLeaderboard,
     });
     const $ = blueprint.factory();
     const expressApp = await $(app);
