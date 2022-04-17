@@ -23,7 +23,9 @@ public class Config {
   private String tlsKeyStorePassword;
   private String connectWebpage;
   private String potatoScoreTopicArn;
-  private URL leaderboardUrl;
+  private URL leaderboardReadUrl;
+  private URL leaderboardWriteUrl;
+  private String leaderboardApiKey;
   private String experienceName;
   private boolean tls;
   private int port;
@@ -87,11 +89,20 @@ public class Config {
     }
 
     try {
-      this.leaderboardUrl = new URL(config.getString("leaderboardUrl"));
+      this.leaderboardReadUrl = new URL(config.getString("leaderboardReadUrl"));
     } catch (MalformedURLException e) {
-      Bukkit.getLogger().warning("leaderboardUrl is an invalid URL in config.yml. Please set a valid URL.");
+      Bukkit.getLogger().warning("leaderboardReadUrl is an invalid URL in config.yml. Please set a valid URL.");
       System.exit(1);
     }
+
+    try {
+      this.leaderboardWriteUrl = new URL(config.getString("leaderboardWriteUrl"));
+    } catch (MalformedURLException e) {
+      Bukkit.getLogger().warning("leaderboardWriteUrl is an invalid URL in config.yml. Please set a valid URL.");
+      System.exit(1);
+    }
+
+    this.leaderboardApiKey = config.getString("leaderboardApiKey", "");
 
     this.connectWebpage = config.getString("connectWebpage");
     if (this.connectWebpage.isEmpty()) {
@@ -214,7 +225,16 @@ public class Config {
     return experienceName;
   }
 
-  public URL getLeaderboardUrl() {
-    return leaderboardUrl;
+  public URL getLeaderboardReadUrl() {
+    return leaderboardReadUrl;
   }
+
+  public URL getLeaderboardWriteUrl() {
+    return leaderboardWriteUrl;
+  }
+
+  public String getLeaderboardApiKey() {
+    return leaderboardApiKey;
+  }
+
 }

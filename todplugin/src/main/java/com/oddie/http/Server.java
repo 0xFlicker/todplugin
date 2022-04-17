@@ -17,6 +17,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import org.bukkit.Bukkit;
+import org.web3j.protocol.http.HttpService;
 
 import com.sun.net.httpserver.HttpsServer;
 import com.sun.net.httpserver.HttpServer;
@@ -28,17 +29,26 @@ public class Server {
   private String tlsKeyStore;
   private String tlsKeyStorePassword;
   private int port;
-  private ThreadPoolExecutor executor;
+  private HttpServer httpServer;
 
   public Server(boolean isTls, String tlsKeyStore, String tlsKeyStorePassword, int port) {
     this.isTls = isTls;
     this.tlsKeyStore = tlsKeyStore;
     this.tlsKeyStorePassword = tlsKeyStorePassword;
     this.port = port;
-    this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
   }
 
-  public HttpServer createHttpServer() {
+  public void start() {
+    httpServer = createHttpServer();
+  }
+
+  public Runnable cleanupTask() {
+    return () -> {
+      httpServer.stop(0);
+    };
+  }
+
+  private HttpServer createHttpServer() {
     try {
       ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
 

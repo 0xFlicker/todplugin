@@ -1,5 +1,6 @@
 package com.oddie.leaderboard;
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.bukkit.Bukkit;
@@ -62,6 +63,18 @@ public class Score {
 
   public void setDate(Date date) {
     this.date = date;
+  }
+
+  public static Score fromJSON(JSONObject json) {
+    String playerId = json.getString("playerId");
+    String playerName = json.getString("playerName");
+    var scoreArray = json.getJSONArray("score");
+    int[] scores = new int[scoreArray.length()];
+    for (int i = 0; i < scoreArray.length(); i++) {
+      scores[i] = scoreArray.getInt(i);
+    }
+    Date date = Date.from(Instant.parse(json.getString("date")));
+    return new Score(playerId, playerName, scores, date);
   }
 
   public JSONObject toJson() {

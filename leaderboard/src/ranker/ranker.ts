@@ -665,6 +665,8 @@ async function createRanker({
       let dateString;
       if (typeof date === "string") {
         dateString = date;
+      } else if (typeof date === "number") {
+        dateString = new Date(date).toISOString();
       } else if (date) {
         dateString = date.toISOString();
       } else {

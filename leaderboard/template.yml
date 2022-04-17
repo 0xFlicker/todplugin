@@ -20,6 +20,26 @@ Globals:
     MemorySize: 256
     Timeout: 100
 Resources:
+  ReadApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: tod-leaderboard-read
+      Description: "Read API for the leaderboard"
+      StageName: Prod
+  WriteApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: tod-leaderboard-write
+      Description: "Write API for the leaderboard"
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: Usage plan for the Write API
+          Tags:
+            - Key: Project
+              Value: !Sub "${ProjectName}"
   LeaderboardFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -27,6 +47,7 @@ Resources:
         - x86_64
       CodeUri: .
       Handler: lib/lambda/http.handler
+      Runtime: nodejs14.x
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref BoardsTable
@@ -42,8 +63,39 @@ Resources:
         LeaderboardHttp:
           Type: Api
           Properties:
+            RestApiId: !Ref ReadApi
             Method: ANY
             Path: /{proxy+}
+    Metadata:
+      BuildMethod: makefile
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - x86_64
+      CodeUri: .
+      Handler: lib/lambda/ingest.httpHandler
+      Runtime: nodejs14.x
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BoardsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ScoresTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NodesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LeaderboardsTable
+      Tags:
+        Project: !Sub "${ProjectName}"
+      Events:
+        IngestHttp:
+          Type: Api
+          Properties:
+            Method: POST
+            Path: /ingest
+            RestApiId: !Ref WriteApi
+            Auth:
+              ApiKeyRequired: true
     Metadata:
       BuildMethod: makefile
   PotatoIngestion:
@@ -52,7 +104,7 @@ Resources:
       Architectures:
         - x86_64
       CodeUri: .
-      Handler: lib/lambda/ingest.handler
+      Handler: lib/lambda/ingest.sqsHandler
       MemorySize: 512
       Timeout: 20
       Policies:
@@ -114,12 +166,12 @@ Resources:
     Properties:
       TableName: scores
       KeySchema:
-        - AttributeName: Name
+        - AttributeName: Board_Name
           KeyType: HASH
         - AttributeName: Player_ID
           KeyType: RANGE
       AttributeDefinitions:
-        - AttributeName: Name
+        - AttributeName: Board_Name
           AttributeType: S
         - AttributeName: Player_ID
           AttributeType: S
@@ -170,9 +222,7 @@ Resources:
         - nodejs14.x
       RetentionPolicy: Retain
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  Api:
-    Description: "API Gateway endpoint URL for Prod stage for Http function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ReadApi:
+    Value: !Sub "https://${ReadApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  WriteApi:
+    Value: !Sub "https://${WriteApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

@@ -136,6 +136,16 @@
         <enabled>true</enabled>
       </releases>
     </repository>
+    <repository>
+      <id>opencollab-snapshot-repo</id>
+      <url>https://repo.opencollab.dev/maven-snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
   </repositories>
   <dependencyManagement>
     <dependencies>
@@ -175,6 +185,22 @@
       <groupId>net.luckperms</groupId>
       <artifactId>api</artifactId>
       <version>5.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>core</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>javase</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geysermc</groupId>
+      <artifactId>core</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

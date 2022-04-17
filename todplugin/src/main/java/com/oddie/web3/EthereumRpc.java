@@ -100,4 +100,14 @@ public class EthereumRpc {
     }
     return match;
   }
+
+  private void stop() {
+    this.ethereumWeb3j.shutdown();
+  }
+
+  public Runnable cleanupTask() {
+    return () -> {
+      this.stop();
+    };
+  }
 }

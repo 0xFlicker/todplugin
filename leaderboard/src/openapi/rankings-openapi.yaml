@@ -1,4 +1,34 @@
 paths:
+  /ranks/{experience}:
+    post:
+      tags:
+        - "rankings"
+      description: "Get bulk score and ranking"
+      operationId: "getBulkRankings"
+      parameters:
+        - name: experience
+          in: path
+          description: The experience to get scores from
+          required: true
+          schema:
+            $ref: "#/components/schemas/Experiences"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PlayerRequest"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingResponse"
   /rank/{experience}:
     post:
       tags:

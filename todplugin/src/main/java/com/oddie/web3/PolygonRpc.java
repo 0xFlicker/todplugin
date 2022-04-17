@@ -17,7 +17,7 @@ import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 
 public class PolygonRpc {
-  private static final String PERSONAL_MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n";
+
   private Web3j polygonWeb3j;
   private EthereumRpc ethereumRpc;
   private DefaultGasProvider gasProvider;
@@ -105,5 +105,15 @@ public class PolygonRpc {
       e.printStackTrace();
       return CompletableFuture.completedFuture(List.of());
     }
+  }
+
+  private void stop() {
+    this.polygonWeb3j.shutdown();
+  }
+
+  public Runnable cleanupTask() {
+    return () -> {
+      this.stop();
+    };
   }
 }

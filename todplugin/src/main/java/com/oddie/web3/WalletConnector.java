@@ -1,6 +1,5 @@
 package com.oddie.web3;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,9 +7,15 @@ import java.util.UUID;
 
 import com.oddie.config.Config;
 import com.oddie.http.OddieJoinRequest;
+import com.oddie.qrmaps.QRMapManager;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import net.kyori.adventure.text.Component;
@@ -55,17 +60,42 @@ public class WalletConnector {
     });
   }
 
-  public void requestConnect(Player player) {
+  private String getConnectLink(Player player) {
     // Create link to wallet connect
-    String connectWebpage = this.config.getConnectWebpage() + "/" + player.getUniqueId().toString()
+    return this.config.getConnectWebpage() + "/" + player.getUniqueId().toString()
         + "/" + this.nonce;
+  }
+
+  public void requestConnectQr(Player player) {
+    QRMapManager renderer = new QRMapManager();
+    MapView view = Bukkit.createMap(player.getWorld());
+    view.getRenderers().clear();
+    String shortLink = getConnectLink(player);
+    renderer.load(shortLink);
+    // TODO: Better error handling
+    view.addRenderer(renderer);
+    ItemStack map = new ItemStack(Material.FILLED_MAP);
+    MapMeta meta = (MapMeta) map.getItemMeta();
+
+    meta.setMapView(view);
+    map.setItemMeta(meta);
+
+    QRMapManager.playerPreviousItem.put(player.getUniqueId(), player.getInventory().getItem(0));
+    player.getInventory().setItem(0, map);
+    player.getInventory().setHeldItemSlot(0);
+
+    player.sendMessage(
+        ChatColor.translateAlternateColorCodes('&', "&f&lScan the QR code on your map! Right click to exit."));
+  }
+
+  public void requestConnect(Player player) {
 
     TextComponent ctaMessage = Component.text("Connect your wallet ")
         .append(Component
             .text("here")
             .decorate(TextDecoration.BOLD, TextDecoration.UNDERLINED)
             .color(TextColor.color(0xFF))
-            .clickEvent(ClickEvent.openUrl(connectWebpage))
+            .clickEvent(ClickEvent.openUrl(getConnectLink(player)))
             .hoverEvent(HoverEvent.showText(Component.text("Click to connect your wallet"))));
     player.sendMessage(ctaMessage);
     this.nonce++;
@@ -108,21 +138,29 @@ public class WalletConnector {
     }
   }
 
+  private void addPlayerToOddieGroup(UUID uuid) {
+    this.isTokenHolder.put(uuid, true);
+    this.addToTokenGroup(uuid);
+  }
+
   public void playerJoined(Player player) {
     // See if the player is already known
     var uuid = player.getUniqueId();
-
-    this.rpc.ownsToken(uuid).thenAccept(ownsToken -> {
-      if (ownsToken) {
-        // Welcome back
-        player.sendMessage("Welcome back Oddie");
-        // Player has a token, so add to token group
-        this.addToTokenGroup(uuid);
-        this.isTokenHolder.put(uuid, true);
-      } else {
-        this.isTokenHolder.put(uuid, false);
-      }
-    });
+    this.config.getWallets().stream().filter(wallet -> wallet.getMinecraftPlayerId().equals(uuid)).findFirst()
+        .ifPresentOrElse(wallet -> {
+          player.sendMessage("Welcome back Oddie");
+          addPlayerToOddieGroup(uuid);
+        }, () -> this.rpc.ownsToken(uuid).thenAccept(ownsToken -> {
+          if (ownsToken) {
+            // Welcome back
+            player.sendMessage("Welcome back Oddie");
+            // Player has a token, so add to token group
+            addPlayerToOddieGroup(uuid);
+          } else {
+            player.sendMessage("No Oddie detected :-(");
+            this.isTokenHolder.put(uuid, false);
+          }
+        }));
   }
 
   public boolean isTokenHolder(UUID uuid) {

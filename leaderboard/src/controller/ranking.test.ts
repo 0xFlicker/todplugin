@@ -40,12 +40,39 @@ describe("ranking", () => {
       ],
     });
     try {
-      const response = await axios.post(
-        `http://localhost:${port}/rank/potato`,
+      let response = await axios.post(`http://localhost:${port}/ranks/potato`, [
         {
           playerId: "1",
-        }
+        },
+        {
+          playerId: "2",
+        },
+      ]);
+      expect(response.status).toBe(200);
+      expect(response.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            ranks: expect.arrayContaining([
+              expect.objectContaining({
+                period: "alltime",
+                rank: 2,
+              }),
+              expect.objectContaining({
+                period: "daily",
+                rank: 2,
+              }),
+              expect.objectContaining({
+                period: "weekly",
+                rank: 2,
+              }),
+            ]),
+          }),
+        ])
       );
+
+      response = await axios.post(`http://localhost:${port}/rank/potato`, {
+        playerId: "1",
+      });
       expect(response.status).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({

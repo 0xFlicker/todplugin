@@ -1,6 +1,7 @@
 .PHONY: build-RuntimeDependenciesLayer build-lambda-common
 .PHONY: build-PotatoIngestion
-.PHONY: build-HttpFunction
+.PHONY: build-LeaderboardFunction
+.PHONY: build-IngestFunction
 
 build-PotatoIngestion:
 	$(MAKE) build-lambda-common
@@ -8,8 +9,10 @@ build-PotatoIngestion:
 build-LeaderboardFunction:
 	$(MAKE) build-lambda-common
 
+build-IngestFunction:
+	$(MAKE) build-lambda-common
+
 build-lambda-common:
-	yarn install
 	rm -rf lib
 	yarn build
 	cp -r lib "$(ARTIFACTS_DIR)/"

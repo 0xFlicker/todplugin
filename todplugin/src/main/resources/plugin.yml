@@ -6,8 +6,12 @@ main: com.oddie.Oddie
 api-version: 1.18
 depend:
   - LuckPerms
+softdepend:
+  - Geyser-Spigot
 commands:
   wallet:
     description: Connect your wallet to the Oddie metaverse
     usage: /<command>
-    permission: oddie.command.wallet
+  p2e:
+    description: P2E Leaderboard commands
+    usage: /<command> [action]

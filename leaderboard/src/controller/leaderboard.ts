@@ -1,4 +1,4 @@
-import { Express } from "express";
+import { IRouter } from "express";
 import type { OpenApiV3 } from "openapi-enforcer";
 import logger from "../utils/logger";
 import { NotFoundError } from "./errors";
@@ -8,7 +8,7 @@ export async function createLeaderboard(
   defs: LeaderboardDef[],
   leaderboardOpenapi: OpenApiV3.OpenApiV3
 ) {
-  return (expressApp: Express) => {
+  return (expressApp: IRouter) => {
     for (let def of defs) {
       for (let period of Object.values(def.periods)) {
         const route = `/leaderboard/${period.boardName}/${period.periodName}`;

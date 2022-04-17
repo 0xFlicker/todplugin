@@ -40,7 +40,10 @@ function createLeaderboard(
     }
     if (!firstScore) {
       // Unable to find any scores for player
-      throw new NotFoundError(`No score found for player ${playerId}`);
+      return {
+        score: [],
+        ranks: [],
+      };
     }
     return {
       score: firstScore,
