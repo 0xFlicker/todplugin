@@ -58,27 +58,37 @@ public class PlayerGrowsThingsListener implements Listener {
       try {
         var players = leaderScoreboardMap.keySet();
         if (players.size() > 0) {
-          var ranks = fetchLeaderboard.ranks("potato", players);
-          int count = 0;
-          for (var playerId : players) {
-            var rank = ranks.get(count);
-            var lb = leaderScoreboardMap.get(playerId);
-            if (lb != null) {
-              Bukkit.getServer().getScheduler().runTask(plugin, () -> {
-                var player = Bukkit.getPlayer(playerId);
-                if (getPlayerLeaderboard(player) != null) {
-                  lb.updateFromRank(rank);
-                }
-              });
+          boolean isLookingAtLeaderboard = false;
+          // Check if any players are looking at the leaderboard
+          for (var player : players) {
+            if (getPlayerLeaderboard(Bukkit.getPlayer(player)) != null) {
+              isLookingAtLeaderboard = true;
+              break;
             }
-            count++;
+          }
+          if (isLookingAtLeaderboard) {
+            var ranks = fetchLeaderboard.ranks("potato", players);
+            int count = 0;
+            for (var playerId : players) {
+              var rank = ranks.get(count);
+              var lb = leaderScoreboardMap.get(playerId);
+              if (lb != null) {
+                Bukkit.getServer().getScheduler().runTask(plugin, () -> {
+                  var player = Bukkit.getPlayer(playerId);
+                  if (player != null && getPlayerLeaderboard(player) != null) {
+                    lb.updateFromRank(rank);
+                  }
+                });
+              }
+              count++;
+            }
           }
         }
       } catch (IOException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-    }, 100L, 100L);
+    }, 100L, 500L);
   }
 
   public Runnable cleanupTask() {
