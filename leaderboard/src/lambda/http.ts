@@ -33,19 +33,21 @@ async function createApp(openApi: any, leaderboardSchema: any, stage: string) {
   const app = express();
   const db = createDb();
   const leaderboardDefs = createLeaderboardDefs(db);
+  const schema = {
+    ...leaderboardSchema,
+    servers: [
+      {
+        url: `/${stage}`,
+      },
+    ],
+  };
+  app.get("/docs/swagger.json", (_, res) => res.json(schema));
   app.use(
     "/docs",
     swaggerUI.serveWithOptions({
       redirect: false,
     }),
-    swaggerUI.setup({
-      ...leaderboardSchema,
-      servers: [
-        {
-          url: `/${stage}`,
-        },
-      ],
-    })
+    swaggerUI.setup(schema)
   );
   const leaderboardApp = await createLeaderboard(leaderboardDefs, openApi);
   const rankingApp = await rankingController(leaderboardDefs, openApi);

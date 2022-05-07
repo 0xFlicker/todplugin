@@ -10,7 +10,7 @@
     "cli": "FAST_EXIT=1 ts-node --files src/cli",
     "tsc:watch": "tsc -b --watch --preserveWatchOutput",
     "schema:watch": "node build-schema --watch",
-    "invoke:test:notification": "sam build && sam local generate-event sns notification | sam local invoke -e -",
+    "invoke:test:notification": "sam build && sam local generate-event sns notification | sam local invoke LeaderboardFunction -e -",
     "dev": "DEPLOYMENT=local run-p --race schema:watch tsc:watch leaderboard:watch pubsub:transformed:watch pubsub:watch pubsub:dedupe:watch"
   },
   "watch": {
