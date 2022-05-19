@@ -1,8 +1,11 @@
 package com.oddie.listener;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.oddie.Oddie;
 import com.oddie.config.Config;
@@ -24,12 +27,20 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+
 public class PlayerGrowsThingsListener implements Listener {
   private Oddie plugin;
   private ScoreQueue scoreQueue;
   private Map<String, Integer> scores;
   private FetchLeaderboard fetchLeaderboard;
   private Map<String, LeaderScoreboard> leaderScoreboardMap;
+  private String currentBoard;
+  private String currentBoardName;
+  private String currentBoardDescription;
 
   public PlayerGrowsThingsListener(Oddie plugin, Config config) {
     this.plugin = plugin;
@@ -38,6 +49,9 @@ public class PlayerGrowsThingsListener implements Listener {
     this.scoreQueue.start();
     this.fetchLeaderboard = new FetchLeaderboard(config);
     this.leaderScoreboardMap = new HashMap<String, LeaderScoreboard>();
+    this.currentBoard = config.getExperienceName();
+    this.currentBoardName = config.getExperienceName();
+    this.currentBoardDescription = null;
   }
 
   private String getPlayerLeaderboard(Player player) {
@@ -54,39 +68,49 @@ public class PlayerGrowsThingsListener implements Listener {
   }
 
   public void start() {
+    try {
+      var board = fetchLeaderboard.fetchBoard(currentBoard);
+      currentBoardName = board.getDisplayName();
+      currentBoardDescription = board.getDescription();
+    } catch (IOException e1) {
+      e1.printStackTrace();
+      Bukkit.getLogger().severe("Failed to fetch board");
+    }
     Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
       try {
         var players = leaderScoreboardMap.keySet();
         if (players.size() > 0) {
-          boolean isLookingAtLeaderboard = false;
+          List<String> playerIds = new ArrayList<String>();
           // Check if any players are looking at the leaderboard
-          for (var player : players) {
-            if (getPlayerLeaderboard(Bukkit.getPlayer(player)) != null) {
-              isLookingAtLeaderboard = true;
+          for (var playerId : players) {
+            var player = Bukkit.getPlayer(UUID.fromString(playerId));
+            if (player == null) {
+              continue;
+            }
+            if (getPlayerLeaderboard(player) != null) {
+              playerIds.add(playerId);
               break;
             }
           }
-          if (isLookingAtLeaderboard) {
-            var ranks = fetchLeaderboard.ranks("potato", players);
-            int count = 0;
-            for (var playerId : players) {
-              var rank = ranks.get(count);
+          if (playerIds.size() > 0) {
+            var ranks = fetchLeaderboard.fetchScore(this.currentBoard, playerIds);
+            for (var rank : ranks) {
+              var playerId = rank.getPlayerId();
               var lb = leaderScoreboardMap.get(playerId);
               if (lb != null) {
                 Bukkit.getServer().getScheduler().runTask(plugin, () -> {
-                  var player = Bukkit.getPlayer(playerId);
+                  var player = Bukkit.getPlayer(UUID.fromString(playerId));
                   if (player != null && getPlayerLeaderboard(player) != null) {
                     lb.updateFromRank(rank);
                   }
                 });
               }
-              count++;
             }
           }
         }
       } catch (IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
+        Bukkit.getLogger().severe("Failed to fetch leaderboard");
       }
     }, 100L, 500L);
   }
@@ -116,10 +140,14 @@ public class PlayerGrowsThingsListener implements Listener {
   public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
     try {
       var playerId = event.getPlayerProfile().getId().toString();
-      var score = fetchLeaderboard.fetchScore("potato", playerId);
-      scores.put(playerId, score.getScore()[0]);
+      List<String> players = new ArrayList<String>(1);
+      players.add(playerId);
+      var score = fetchLeaderboard.fetchScore(this.currentBoard, players);
+      if (score.size() > 0) {
+        scores.put(playerId, Integer.valueOf(score.get(0).getScore()[0]));
+      }
+
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
       Bukkit.getLogger().severe("Failed to fetch leaderboard");
     }
@@ -127,9 +155,23 @@ public class PlayerGrowsThingsListener implements Listener {
 
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
-    var leaderScoreBoard = new LeaderScoreboard("Potato", event.getPlayer(), "potato", fetchLeaderboard);
+    var leaderScoreBoard = new LeaderScoreboard(this.currentBoardName, event.getPlayer(), this.currentBoard,
+        fetchLeaderboard);
     leaderScoreboardMap.put(event.getPlayer().getUniqueId().toString(), leaderScoreBoard);
     var player = event.getPlayer();
+    player.setMetadata("oddie_leaderboard", new FixedMetadataValue(this.plugin, currentBoard));
+    Bukkit.getPluginManager().callEvent(new P2eEvent(player, currentBoard));
+    player.sendMessage(Component.text("The current quest is ")
+        .append(Component
+            .text(currentBoardName)
+            .decorate(TextDecoration.BOLD, TextDecoration.UNDERLINED)
+            .color(TextColor.color(0xFF))));
+    if (currentBoardDescription != null) {
+      player.sendMessage(Component
+          .text(currentBoardDescription)
+          .color(TextColor.color(0xFFFF88)));
+    }
+
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       var task = leaderScoreBoard.init();
       if (task != null) {
@@ -196,7 +238,7 @@ public class PlayerGrowsThingsListener implements Listener {
             }
             score++;
             scores.put(playerId, score);
-            this.scoreQueue.add(ScoreMessage.singleScore("potato", playerId, score));
+            this.scoreQueue.add(ScoreMessage.deltaScore(currentBoard, playerId, 1));
             var leaderboard = this.leaderScoreboardMap.get(playerId);
             if (leaderboard != null) {
               leaderboard.updateScoreOnly(score);

@@ -1,6 +1,8 @@
 package com.oddie.leaderboard;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,7 +32,13 @@ public class LeaderScoreboard {
 
   public Runnable init() {
     try {
-      var rank = this.fetchLeaderboard.rank(boardName, playerId);
+      List<String> players = new ArrayList<String>(1);
+      players.add(playerId);
+      var ranks = this.fetchLeaderboard.fetchScore(boardName, players);
+      if (ranks.size() == 0) {
+        return null;
+      }
+      var rank = ranks.get(0);
       return new Runnable() {
         @Override
         public void run() {
@@ -46,14 +54,9 @@ public class LeaderScoreboard {
             objective.getScore("Score").setScore(0);
           }
 
-          var ranks = rank.getRanks();
-          for (int i = 0; i < ranks.size(); i++) {
-            var r = ranks.get(i);
-            var periodName = r.getPeriod();
-            var team = board.registerNewTeam(periodName);
-            team.addEntry(periodName);
-            objective.getScore(periodName).setScore(r.getRank());
-          }
+          var team = board.registerNewTeam("Rank");
+          team.addEntry("Rank");
+          objective.getScore("Rank").setScore(rank.getRank());
         }
       };
     } catch (IOException e) {
@@ -81,21 +84,20 @@ public class LeaderScoreboard {
     } else {
       objective.getScore("Score").setScore(0);
     }
-    var ranks = rank.getRanks();
-    for (int i = 0; i < ranks.size(); i++) {
-      var r = ranks.get(i);
-      var periodName = r.getPeriod();
-      objective.getScore(periodName).setScore(r.getRank());
-    }
+    objective.getScore("Rank").setScore(rank.getRank());
   }
 
   public Runnable update() {
     try {
-      var rank = this.fetchLeaderboard.rank(boardName, playerId);
+      List<String> players = new ArrayList<String>(1);
+      players.add(playerId);
+      var ranks = this.fetchLeaderboard.fetchScore(boardName, players);
       return new Runnable() {
         @Override
         public void run() {
-          updateFromRank(rank);
+          if (ranks.size() > 0) {
+            updateFromRank(ranks.get(0));
+          }
         }
       };
     } catch (IOException e) {

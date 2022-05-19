@@ -23,3 +23,10 @@ components:
         - "daily"
     Player:
       type: "object"
+      properties:
+        Player_ID:
+          type: "string"
+        Score:
+          type: "array"
+          items:
+            type: "number"

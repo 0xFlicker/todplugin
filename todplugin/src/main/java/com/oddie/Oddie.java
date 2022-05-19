@@ -46,7 +46,7 @@ public class Oddie extends JavaPlugin {
 
     this.connector = new WalletConnector(this.ethereumRpc, this.polygonRpc, this.config);
     this.getCommand("wallet").setExecutor(new Connect(this.connector));
-    this.getCommand("p2e").setExecutor(new Leaderboard(this));
+    this.getCommand("p2e").setExecutor(new Leaderboard(this, this.config));
 
     var playerGrow = new PlayerGrowsThingsListener(this, config);
     playerGrow.start();

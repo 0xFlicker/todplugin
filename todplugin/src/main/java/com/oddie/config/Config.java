@@ -22,9 +22,8 @@ public class Config {
   private String tlsKeyStore;
   private String tlsKeyStorePassword;
   private String connectWebpage;
-  private String potatoScoreTopicArn;
-  private URL leaderboardReadUrl;
-  private URL leaderboardWriteUrl;
+  private String scoreTopicArn;
+  private URL leaderboardUrl;
   private String leaderboardApiKey;
   private String experienceName;
   private boolean tls;
@@ -76,10 +75,10 @@ public class Config {
       System.exit(1);
     }
 
-    this.potatoScoreTopicArn = config.getString("potatoScoreTopicArn");
-    if (this.potatoScoreTopicArn.isEmpty()) {
+    this.scoreTopicArn = config.getString("scoreTopicArn");
+    if (this.scoreTopicArn.isEmpty()) {
       Bukkit.getLogger()
-          .warning("potatoScoreTopicArn is not set in config.yml. Please set a topic arn for the potato score.");
+          .warning("scoreTopicArn is not set in config.yml. Please set a topic arn for the potato score.");
     }
 
     this.experienceName = config.getString("experienceName");
@@ -89,16 +88,9 @@ public class Config {
     }
 
     try {
-      this.leaderboardReadUrl = new URL(config.getString("leaderboardReadUrl"));
+      this.leaderboardUrl = new URL(config.getString("leaderboardUrl"));
     } catch (MalformedURLException e) {
-      Bukkit.getLogger().warning("leaderboardReadUrl is an invalid URL in config.yml. Please set a valid URL.");
-      System.exit(1);
-    }
-
-    try {
-      this.leaderboardWriteUrl = new URL(config.getString("leaderboardWriteUrl"));
-    } catch (MalformedURLException e) {
-      Bukkit.getLogger().warning("leaderboardWriteUrl is an invalid URL in config.yml. Please set a valid URL.");
+      Bukkit.getLogger().warning("leaderboardUrl is an invalid URL in config.yml. Please set a valid URL.");
       System.exit(1);
     }
 
@@ -218,19 +210,15 @@ public class Config {
   }
 
   public String getTopicArn() {
-    return potatoScoreTopicArn;
+    return scoreTopicArn;
   }
 
   public String getExperienceName() {
     return experienceName;
   }
 
-  public URL getLeaderboardReadUrl() {
-    return leaderboardReadUrl;
-  }
-
-  public URL getLeaderboardWriteUrl() {
-    return leaderboardWriteUrl;
+  public URL getLeaderboardUrl() {
+    return leaderboardUrl;
   }
 
   public String getLeaderboardApiKey() {

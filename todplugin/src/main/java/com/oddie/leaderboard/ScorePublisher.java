@@ -1,5 +1,9 @@
 package com.oddie.leaderboard;
 
+import java.util.List;
+
+import org.bukkit.Bukkit;
+
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
@@ -15,26 +19,25 @@ public class ScorePublisher {
     this.topicArn = topicArn;
   }
 
-  public void publish(ScoreMessage message) {
-    pubTopic(message.toString());
+  public void publish(List<ScoreMessage> message) {
+    for (ScoreMessage scoreMessage : message) {
+      pubTopic(scoreMessage.getBoardName(), scoreMessage.toString());
+    }
   }
 
-  private void pubTopic(String message) {
+  private void pubTopic(String messageGroupId, String message) {
     try {
-      // Hash message
-
       PublishRequest request = PublishRequest.builder()
           .message(message)
           .topicArn(topicArn)
-          .messageGroupId("potato")
+          .messageGroupId(
+              messageGroupId)
           .build();
 
       PublishResponse result = snsClient.publish(request);
-      System.out.println(result.messageId() + " Message sent. Status is " + result.sdkHttpResponse().statusCode());
-
+      Bukkit.getLogger().info("MessageId - " + result.messageId());
     } catch (SnsException e) {
-      System.err.println(e.awsErrorDetails().errorMessage());
-      System.exit(1);
+      Bukkit.getLogger().severe("Failed to fetch leaderboard: " + e.awsErrorDetails().errorMessage());
     }
   }
 }
