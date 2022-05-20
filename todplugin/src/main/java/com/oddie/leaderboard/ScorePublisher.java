@@ -37,7 +37,9 @@ public class ScorePublisher {
       PublishResponse result = snsClient.publish(request);
       Bukkit.getLogger().info("MessageId - " + result.messageId());
     } catch (SnsException e) {
-      Bukkit.getLogger().severe("Failed to fetch leaderboard: " + e.awsErrorDetails().errorMessage());
+      e.printStackTrace();
+      Bukkit.getLogger()
+          .severe("Failed to fetch leaderboard: " + e.awsErrorDetails().errorMessage() + " on topic " + topicArn);
     }
   }
 }
